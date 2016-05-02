@@ -6,6 +6,7 @@ if ((New-Object Security.Principal.WindowsPrincipal $user).IsInRole([Security.Pr
 }
 else
 {
+    $VMs = Get-VM -ComputerName . | Where-Object {$_.State -eq 'Running'}
     foreach ($VM in $VMs)
     {
         $VMName = $VM.Name
