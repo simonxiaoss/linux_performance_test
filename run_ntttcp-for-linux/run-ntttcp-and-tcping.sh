@@ -52,9 +52,9 @@ do
 
 	echo "throughput (gbps): $throughput"
 	echo "average packet size: $avg_pkt_size"
-	echo "${threads_n1[$i]}    $throughput    $avg_pkt_size" >> $eth_log 
-	echo "current test finished. wait for next one... "
+	printf "%4s  %8.2f  %8.2f\n" ${threads_n1[$i]} $throughput $avg_pkt_size >> $eth_log
 
+	echo "current test finished. wait for next one... "
 	i=$(($i + 1))
 	sleep 5
 done
@@ -83,7 +83,8 @@ do
 
 	echo "throughput (gbps): $throughput"
 	echo "average packet size: $avg_pkt_size"
-	echo "$((${threads_64_nx[$i]}*64))    $throughput    $avg_pkt_size" >> $eth_log
+	printf "%4s  %8.2f  %8.2f\n" $((${threads_64_nx[$i]}*64)) $throughput $avg_pkt_size >> $eth_log
+
 	echo "current test finished. wait for next one... "
 
 	i=$(($i + 1))
@@ -93,4 +94,3 @@ done
 ssh $server_username@$server_ip "pkill -f ntttcp"
 
 echo "all done."
-
