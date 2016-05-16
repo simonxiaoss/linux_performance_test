@@ -1,0 +1,10 @@
+recordcount=20000000
+operationcount=20000000
+readallfields=true
+writeallfields=false
+workload=com.yahoo.ycsb.workloads.CoreWorkload
+readproportion=0.5
+updateproportion=0.5
+requestdistribution=zipfian
+threadcount=8
+maxexecutiontime=900
