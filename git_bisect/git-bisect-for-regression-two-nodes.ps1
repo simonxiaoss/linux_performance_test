@@ -345,10 +345,24 @@ while ($true)
     # cleanup the vm /boot directory: remove previous initrd and vmlinuz to save disk space on /boot
     ############################################
 	Write-Host "INFO :Remove previous installed kernels from server and client"
-    Write-Host "INFO :Removing files from: $server_VM_ip"
-    SendCommandToVM $server_VM_ip $sshKey "rm -rf /boot/initrd.img* /boot/vmlinuz* /boot/System.map* /boot/config-* /lib/modules/* /root/linux-image-*.deb"
+    Write-Host "INFO :Removing previous compiled kernels from: $server_VM_ip"
+    SendCommandToVM $server_VM_ip $sshKey "rm -rf /root/linux-image-*.deb"
+	Write-Host "INFO :Removing previous installed kernels from: $server_VM_ip"
+    SendCommandToVM $server_VM_ip $sshKey "rm -rf /boot/*$test_kernel_prefix*"
+	Write-Host "INFO :Removing modules of previous installed kernels from: $server_VM_ip"
+    SendCommandToVM $server_VM_ip $sshKey "rm -rf /boot/*$test_kernel_prefix* /lib/modules/* /root/linux-image-*.deb"
+	Write-Host "INFO :update-grub from: $server_VM_ip"
+    SendCommandToVM $server_VM_ip $sshKey "update-grub"
+	
     Write-Host "INFO :Removing files from: $client_VM_ip"
-    SendCommandToVM $client_VM_ip $sshKey "rm -rf /boot/initrd.img* /boot/vmlinuz* /boot/System.map* /boot/config-* /lib/modules/* /root/linux-image-*.deb"    
+    Write-Host "INFO :Removing previous compiled kernels from: $client_VM_ip"
+    SendCommandToVM $client_VM_ip $sshKey "rm -rf /root/linux-image-*.deb"
+	Write-Host "INFO :Removing previous installed kernels from: $client_VM_ip"
+    SendCommandToVM $client_VM_ip $sshKey "rm -rf /boot/*$test_kernel_prefix*"
+	Write-Host "INFO :Removing modules of previous installed kernels from: $client_VM_ip"
+    SendCommandToVM $client_VM_ip $sshKey "rm -rf /boot/*$test_kernel_prefix* /lib/modules/* /root/linux-image-*.deb"
+	Write-Host "INFO :update-grub from: $client_VM_ip"
+    SendCommandToVM $client_VM_ip $sshKey "update-grub"
     
     ############################################
     # git bisect and build linux-next on server VM, 

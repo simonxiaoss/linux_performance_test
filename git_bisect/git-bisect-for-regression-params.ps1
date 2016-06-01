@@ -31,6 +31,7 @@ $sshKey = "id_rsa.ppk"
 
 $distro_build_script = "build-ubuntu.sh"
 $icabase_checkpoint = "RegressionBase"
+$test_kernel_prefix = "listestkernel"
 $linux_next_base_checkpoint = "linux-next-base"
 
 $test_folder = "V:\Test"
