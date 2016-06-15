@@ -1,5 +1,6 @@
  #!/bin/bash
  
+log_folder=$1
 server_ip=192.168.4.99
 server_username=azureuser
 ntttcp_run_duration=65
@@ -7,8 +8,13 @@ tcping_run_duration=60
 threads_n1=(1 2 4 8 16 32 64)
 threads_64_nx=(2 4 8 16)
 tcping_location=tcping
-log_folder=logs
 eth_name=eth0
+
+if [[ $log_folder == ""  ]]
+then
+	log_folder=logs
+fi
+
 eth_log="./$log_folder/eth_report.log"
 
 function get_tx_bytes(){
