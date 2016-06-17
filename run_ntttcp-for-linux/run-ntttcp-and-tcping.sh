@@ -1,8 +1,8 @@
  #!/bin/bash
  
 log_folder=$1
-server_ip=192.168.4.99
-server_username=azureuser
+server_ip=$2
+server_username=$3
 ntttcp_run_duration=65
 tcping_run_duration=60
 threads_n1=(1 2 4 8 16 32 64)
@@ -14,6 +14,18 @@ if [[ $log_folder == ""  ]]
 then
 	log_folder=logs
 fi
+
+if [[ $server_ip == ""  ]]
+then
+	server_ip=192.168.4.169
+fi
+
+
+if [[ $server_username == ""  ]]
+then
+	server_username=root
+fi
+
 
 eth_log="./$log_folder/eth_report.log"
 
