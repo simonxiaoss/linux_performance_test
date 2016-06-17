@@ -1,0 +1,6 @@
+test_netvsc_patch_performance/patch-test-params-INTERNAL.ps1
+git_bisect/bin/plink.exe
+git_bisect/bin/pscp.exe
+git_bisect/ssh/id_rsa
+git_bisect/ssh/id_rsa.pub
+git_bisect/ssh/id_rsa.ppk

@@ -278,9 +278,9 @@ if((test-path ".\TCUtils.ps1") -eq $false )
 }
 . .\TCUtils.ps1
 
-if((test-path $linux_patch_folde) -eq $false )
+if((test-path $linux_patch_folder) -eq $false )
 {
-    write-host "$linux_patch_folde not found"
+    write-host "$linux_patch_folder not found"
     exit -1
 }
 
@@ -319,6 +319,12 @@ $run = 2  #only run test 2 times: defaultupstream kernel and patchedupstream ker
 while ($run -gt 0)
 {
     ############################################
+    # Cleanup VM environment
+    ############################################    
+    SendCommandToVM      $client_VM_ip $sshKey "rm -rf linux-image*.deb"
+    SendCommandToVM      $server_VM_ip $sshKey "rm -rf linux-image*.deb"
+
+    ############################################
     # Build on client VM
     ############################################
     $clientkernelbuildlog = "client-build-$logid.log"
@@ -326,8 +332,16 @@ while ($run -gt 0)
     $testlog              = "run-test-$logid.log"
     $kernel_image_name = $("linux-image-" + $logid + ".deb")
 
+    echo "echo BUILDTAG=$logid > build.tag"                    > .\run-kernelbuild.sh
+    echo "mv ./$distro_build_script ./$linuxnextfolder "      >> .\run-kernelbuild.sh
+    echo "cd ./$linuxnextfolder "                             >> .\run-kernelbuild.sh
+    echo "./$distro_build_script > ../$clientkernelbuildlog"  >> .\run-kernelbuild.sh
+    echo "cd .. "                                             >> .\run-kernelbuild.sh
+    echo "echo BUILD_FINISHED > ./teststate.sig        "      >> .\run-kernelbuild.sh
+
+    SendFileToVM     $client_VM_ip $sshKey ./run-kernelbuild.sh  "run-kernelbuild.sh"  $true
     SendFileToVM     $client_VM_ip $sshKey $distro_build_script   $distro_build_script $true
-    SendCommandToVM  $client_VM_ip $sshKey "echo BUILDTAG=$logid > build.tag && chmod 755 *.sh && ./$distro_build_script > $clientkernelbuildlog && echo BUILD_FINISHED > ./teststate.sig"
+    SendCommandToVM  $client_VM_ip $sshKey "dos2unix *.sh && chmod 755 *.sh && ./run-kernelbuild.sh"
     WaitVMState      $client_VM_ip $sshKey "BUILD_FINISHED" 
 
     Write-Host "INFO :New kernel has been installed on $client_VM_Name. Copy log files and the new kernel back from the VM"
@@ -337,10 +351,19 @@ while ($run -gt 0)
     ############################################
     # install the kernel on Server VM
     ############################################
+
+    echo "mkdir ./$linuxnextfolder "                           > .\run-kernelinstall.sh
+    echo "mv ./$distro_build_script ./$linuxnextfolder "      >> .\run-kernelinstall.sh
+    echo "cd ./$linuxnextfolder "                             >> .\run-kernelinstall.sh
+    echo "./$distro_build_script > ../$serverkernelbuildlog"  >> .\run-kernelinstall.sh
+    echo "cd .. "                                             >> .\run-kernelinstall.sh
+    echo "echo BUILD_FINISHED    > ./teststate.sig     "      >> .\run-kernelinstall.sh
+
     SendCommandToVM  $server_VM_ip $sshKey "rm -rf *.deb"
-    SendFileToVM     $server_VM_ip $sshKey $distro_build_script   $distro_build_script $true
-    SendFileToVM     $server_VM_ip $sshKey $kernel_image_name     $kernel_image_name   $true
-    SendCommandToVM  $server_VM_ip $sshKey "chmod 755 *.sh && ./$distro_build_script >$serverkernelbuildlog && echo BUILD_FINISHED > ./teststate.sig"
+    SendFileToVM     $server_VM_ip $sshKey ./run-kernelinstall.sh   "run-kernelinstall.sh" $true
+    SendFileToVM     $server_VM_ip $sshKey $distro_build_script     $distro_build_script   $true
+    SendFileToVM     $server_VM_ip $sshKey $kernel_image_name       $kernel_image_name     $true
+    SendCommandToVM  $server_VM_ip $sshKey "dos2unix *.sh && chmod 755 *.sh && ./run-kernelinstall.sh" 
     WaitVMState      $server_VM_ip $sshKey "BUILD_FINISHED" 
 
     Write-Host "INFO :New kernel has been installed on $server_VM_Name. Copy log files and the new kernel back from the VM"
@@ -406,12 +429,20 @@ while ($run -gt 0)
     Write-Host "INFO :running the test script ..."
     SendFileToVM     $client_VM_ip $sshKey $benchmark_script     $benchmark_script   $true
     SendCommandToVM  $client_VM_ip $sshKey "chmod 755 *.sh && ./$benchmark_script $logid >$testlog  && echo TEST_FINISHED > ./teststate.sig"
-    WaitVMState      $server_VM_ip $sshKey "TEST_FINISHED" 
+    WaitVMState      $client_VM_ip $sshKey "TEST_FINISHED" 
 
     ############################################
     # copy test log files back
     ############################################
-    TODOs
+    $ntttcp_client_log = "ntttcp-testlog-client-$logid.tar"
+    $ntttcp_server_log = "ntttcp-testlog-server-$logid.tar"
+    SendCommandToVM  $client_VM_ip $sshKey "tar -cvf $ntttcp_client_log $logid "
+    SendCommandToVM  $server_VM_ip $sshKey "tar -cvf $ntttcp_server_log $logid "
+
+    Start-Sleep -Seconds 30  #wait tar to complete
+
+    GetFileFromVM    $client_VM_ip $sshKey   $ntttcp_client_log $ntttcp_client_log 
+    GetFileFromVM    $server_VM_ip $sshKey   $ntttcp_server_log $ntttcp_server_log 
 
     ############################################
     # Prepare next run
