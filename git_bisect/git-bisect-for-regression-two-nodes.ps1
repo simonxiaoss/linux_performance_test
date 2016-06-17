@@ -228,17 +228,17 @@ function InitVmUp([String] $vmName, [String] $hvServer, [string] $checkpointName
     }
 
     Write-Host "INFO : get ip for VM $vmName : $ipv4"
-	if ($ipv4 -ne $null)
-	{
+    if ($ipv4 -ne $null)
+    {
         #sleep for sshd to start
-		$continueLoop = 60
-		While( ($continueLoop -gt 0) -and ( (TestPort $ipv4 22) -ne $true )) {      
-			Write-Host "." -NoNewLine
-			Start-Sleep -Seconds 5
-			$continueLoop -= 5
-		}
+        $continueLoop = 60
+        While( ($continueLoop -gt 0) -and ( (TestPort $ipv4 22) -ne $true )) {      
+            Write-Host "." -NoNewLine
+            Start-Sleep -Seconds 5
+            $continueLoop -= 5
+        }
         Write-Host "OK"   
-	}
+    }
 }
 
 function CheckVmKernelVersion([String] $ipv4, [String] $sshKey)
@@ -344,24 +344,24 @@ while ($true)
     ############################################
     # cleanup the vm /boot directory: remove previous initrd and vmlinuz to save disk space on /boot
     ############################################
-	Write-Host "INFO :Remove previous installed kernels from server and client"
+    Write-Host "INFO :Remove previous installed kernels from server and client"
     Write-Host "INFO :Removing previous compiled kernels from: $server_VM_ip"
     SendCommandToVM $server_VM_ip $sshKey "rm -rf /root/linux-image-*.deb"
-	Write-Host "INFO :Removing previous installed kernels from: $server_VM_ip"
+    Write-Host "INFO :Removing previous installed kernels from: $server_VM_ip"
     SendCommandToVM $server_VM_ip $sshKey "rm -rf /boot/*$test_kernel_prefix*"
-	Write-Host "INFO :Removing modules of previous installed kernels from: $server_VM_ip"
+    Write-Host "INFO :Removing modules of previous installed kernels from: $server_VM_ip"
     SendCommandToVM $server_VM_ip $sshKey "rm -rf /boot/*$test_kernel_prefix* /lib/modules/* /root/linux-image-*.deb"
-	Write-Host "INFO :update-grub from: $server_VM_ip"
+    Write-Host "INFO :update-grub from: $server_VM_ip"
     SendCommandToVM $server_VM_ip $sshKey "update-grub"
-	
+    
     Write-Host "INFO :Removing files from: $client_VM_ip"
     Write-Host "INFO :Removing previous compiled kernels from: $client_VM_ip"
     SendCommandToVM $client_VM_ip $sshKey "rm -rf /root/linux-image-*.deb"
-	Write-Host "INFO :Removing previous installed kernels from: $client_VM_ip"
+    Write-Host "INFO :Removing previous installed kernels from: $client_VM_ip"
     SendCommandToVM $client_VM_ip $sshKey "rm -rf /boot/*$test_kernel_prefix*"
-	Write-Host "INFO :Removing modules of previous installed kernels from: $client_VM_ip"
+    Write-Host "INFO :Removing modules of previous installed kernels from: $client_VM_ip"
     SendCommandToVM $client_VM_ip $sshKey "rm -rf /boot/*$test_kernel_prefix* /lib/modules/* /root/linux-image-*.deb"
-	Write-Host "INFO :update-grub from: $client_VM_ip"
+    Write-Host "INFO :update-grub from: $client_VM_ip"
     SendCommandToVM $client_VM_ip $sshKey "update-grub"
     
     ############################################
@@ -379,23 +379,23 @@ while ($true)
     #echo "scp  ../linux-image*.deb root@$client_VM_ip`: " >> .\bisect-and-build.sh
 
     Write-Host "INFO :Copy kernel build files to server VM to build the new kernel"
-	Write-Host "    1) file: const.sh"
+    Write-Host "    1) file: const.sh"
     SendFileToVM     $server_VM_ip $sshKey ./const.sh             "const.sh" $true
     Write-Host "    2) file: bisect-and-build.sh"
     SendFileToVM     $server_VM_ip $sshKey ./bisect-and-build.sh  "bisect-and-build.sh" $true
-	Write-Host "    3) file: $distro_build_script"
+    Write-Host "    3) file: $distro_build_script"
     SendFileToVM     $server_VM_ip $sshKey $distro_build_script   $distro_build_script $true
     Write-Host "    4) chmod 755 *.sh, and run kernel build script: bisect-and-build.sh"
     SendCommandToVM $server_VM_ip $sshKey "chmod 755 *.sh && ./bisect-and-build.sh"
     WaitVMState     $server_VM_ip $sshKey "BUILD_FINISHED" 
     
-	Write-Host "INFO :New kernel has been installed. Copy log files and the new kernel back from server VM"
-	$kernel_image_name = $("linux-image-" + $logid + ".deb")
+    Write-Host "INFO :New kernel has been installed. Copy log files and the new kernel back from server VM"
+    $kernel_image_name = $("linux-image-" + $logid + ".deb")
     GetFileFromVM     $server_VM_ip $sshKey $log                         $($logid + "-SERVER-" + $log)
     GetFileFromVM     $server_VM_ip $sshKey "git-bisect.log"             $($logid + "-SERVER-git-bisect.log")
     GetFileFromVM     $server_VM_ip $sshKey "git-bisect-commit.log"      $($logid + "-SERVER-git-bisect-commit.log")
     GetFileFromVM     $server_VM_ip $sshKey "linux-image*.deb"           $kernel_image_name
-	Write-Host "INFO :Files copied. Parsing the log files"
+    Write-Host "INFO :Files copied. Parsing the log files"
 
     $commitfile = (Get-Content $($logid+"-SERVER-git-bisect-commit.log") )
     $bisect_commit_id = $commitfile.Split(" ")[1];
@@ -428,7 +428,7 @@ while ($true)
     SendFileToVM     $client_VM_ip $sshKey ./install-kernel.sh   "install-kernel.sh"  $true
     Write-Host "    4) chmod 755 *.sh, and run kernel install script: install-kernel.sh"
     SendCommandToVM  $client_VM_ip $sshKey "chmod 755 *.sh && ./install-kernel.sh"    
-	Start-Sleep -Seconds 60  #workaround a waiting bug
+    Start-Sleep -Seconds 60  #workaround a waiting bug
     WaitVMState      $client_VM_ip $sshKey "BUILD_FINISHED" 
     
     Write-Host "INFO :New kernel has been installed. Copy the log back from client VM"
