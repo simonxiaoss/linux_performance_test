@@ -27,6 +27,7 @@
 # vm: git-core installed
 # vm: NTTTCP-for-Linux installed for network throughput performance test. 
 #     See NTTTCP-for-Linux here: https://github.com/Microsoft/ntttcp-for-linux
+# vm: listcping installed for network latency performance test. 
 # vm: if ubuntu: apt-get install kernel-package, so that we can build kernel package
 # vm: if ubuntu: apt-get install hv-kvp-daemon-init, or linux-cloud-tools-$(uname -r), to install kvp daemon
 # vm: if ubuntu: apt-get install dos2unix
@@ -37,17 +38,13 @@
 #    password/key is not required when scp file between them
 # 3) Install above tools
 # 4) Create a root checkpoint for those VMs (for example, Lisabase). And configure the params file: 
-#    git-bisect-for-regression-params.ps1
+#    patch-test-params.ps1
 ########################################################################
 # Test folder files:
 #    /TEST
 #        /bin
 #             /plink.exe
 #             /pscp.exe
-#             /dos2unix.exe, and its dependencies as below. all of them can be found from git for Windows
-#             /msys-2.0.dll
-#             /msys-iconv-2.dll
-#             /msys-intl-8.dll
 #        /ssh
 #             /id_rsa.ppk
 #             /id_rsa.pub
@@ -318,6 +315,8 @@ $logid = "defaultupstream"
 $run = 2  #only run test 2 times: defaultupstream kernel and patchedupstream kernel
 while ($run -gt 0)
 {
+    Write-Host "INFO :Start iteration $logid ($run) ..." -backgroundcolor blue
+
     ############################################
     # Cleanup VM environment
     ############################################    
@@ -372,8 +371,8 @@ while ($run -gt 0)
     ############################################
     # kernel ready, make a checkpoint for debug purpose
     ############################################
-    Checkpoint-VM -Name $server_VM_Name -ComputerName $server_Host_ip -SnapshotName $($linux_next_base_checkpoint+$logid) -Confirm:$False
-    Checkpoint-VM -Name $client_VM_Name -ComputerName $client_Host_ip -SnapshotName $($linux_next_base_checkpoint+$logid) -Confirm:$False
+    Checkpoint-VM -Name $server_VM_Name -ComputerName $server_Host_ip -SnapshotName $($linux_next_base_checkpoint+"-"+$logid) -Confirm:$False
+    Checkpoint-VM -Name $client_VM_Name -ComputerName $client_Host_ip -SnapshotName $($linux_next_base_checkpoint+"-"+$logid) -Confirm:$False
     
     ############################################
     # restart the server and client VMs to boot from new kernel
@@ -434,27 +433,30 @@ while ($run -gt 0)
     ############################################
     # copy test log files back
     ############################################
-    $ntttcp_client_log = "ntttcp-testlog-client-$logid.tar"
-    $ntttcp_server_log = "ntttcp-testlog-server-$logid.tar"
-    SendCommandToVM  $client_VM_ip $sshKey "tar -cvf $ntttcp_client_log $logid "
-    SendCommandToVM  $server_VM_ip $sshKey "tar -cvf $ntttcp_server_log $logid "
+    $ntttcp_client_log_tar = "ntttcp-testlog-client-$logid.tar"
+    $ntttcp_server_log_tar = "ntttcp-testlog-server-$logid.tar"
+    Write-Host "INFO :package the test logs ..."
+    SendCommandToVM  $client_VM_ip $sshKey "tar -cvf $ntttcp_client_log_tar $logid "
+    SendCommandToVM  $server_VM_ip $sshKey "tar -cvf $ntttcp_server_log_tar $logid "
 
     Start-Sleep -Seconds 30  #wait tar to complete
-
-    GetFileFromVM    $client_VM_ip $sshKey   $ntttcp_client_log $ntttcp_client_log 
-    GetFileFromVM    $server_VM_ip $sshKey   $ntttcp_server_log $ntttcp_server_log 
+    Write-Host "INFO :copy the log files frm client and server VMs ..."
+    GetFileFromVM    $client_VM_ip $sshKey   $ntttcp_client_log_tar $ntttcp_client_log_tar 
+    GetFileFromVM    $server_VM_ip $sshKey   $ntttcp_server_log_tar $ntttcp_server_log_tar 
 
     ############################################
     # Prepare next run
     ############################################
     $logid = "patchedupstream"
-    $run = $run--
+    $run--
 
     ############################################
     # send all patches to client VM
     ############################################
+    Write-Host "INFO :send patches to client VM ..."
     $patchfiles = Get-ChildItem $linux_patch_folder
     for ($i=0; $i -lt $patchfiles.Count; $i++) {
         SendFileToVM     $client_VM_ip $sshKey $patchfiles[$i].FullName  $patchfiles[$i].Name  $true
     }
 }
+Write-Host "INFO :TEST FINISHED SUCCESSFULLY"
