@@ -29,6 +29,7 @@ if [ "$(which ntttcp)" == "" ]; then
 	git clone https://github.com/Microsoft/ntttcp-for-linux
 	cd ntttcp-for-linux/src
 	make && make install
+	cd ../..
 fi
 
 if [ "$(which lagscope)" == "" ]; then
@@ -36,6 +37,7 @@ if [ "$(which lagscope)" == "" ]; then
 	git clone https://github.com/Microsoft/lagscope
 	cd lagscope/src
 	make && make install
+	cd ../..
 fi
 
 eth_log="./$log_folder/eth_report.log"
