@@ -1,6 +1,6 @@
 #!/bin/bash
 
-test_concurrency_collection=(1 2 4 8 16 32 64 128 256 512 1024)
+test_concurrency_collection=(1 2 4 8 16 32 64 128 256 512 1000)
 test_total_requests_collection=(100000 200000 400000 400000 800000 1000000 1000000 1000000 2000000 2000000 2000000)
 server="192.168.4.169"
 log_folder="/root/benchmark/ab/logs"
@@ -34,7 +34,7 @@ do
         #start running the apache-benchmark on client
         sleep 10
         echo "-> start running"
-        ab -n $total_requests -c $pipelines http://${server}/test.dat > $log_folder/$pipelines/$pipelines.ab.log
+        ab -n $total_requests -r -c $pipelines http://${server}/test.dat > $log_folder/$pipelines/$pipelines.ab.log
         echo "-> done"
 		
         #cleanup apache
