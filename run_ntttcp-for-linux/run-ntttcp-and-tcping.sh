@@ -3,11 +3,9 @@
 log_folder=$1
 server_ip=$2
 server_username=$3
-ntttcp_run_duration=65
-tcping_run_duration=60
+test_run_duration=1
 threads_n1=(1 2 4 8 16 32 64)
 threads_64_nx=(2 4 8 16)
-tcping_location=tcping
 eth_name=eth0
 
 if [[ $log_folder == ""  ]]
@@ -26,6 +24,19 @@ then
 	server_username=root
 fi
 
+if [ "$(which ntttcp)" == "" ]; then
+	rm -rf ntttcp-for-linux
+	git clone https://github.com/Microsoft/ntttcp-for-linux
+	cd ntttcp-for-linux/src
+	make && make install
+fi
+
+if [ "$(which lagscope)" == "" ]; then
+	rm -rf lagscope
+	git clone https://github.com/Microsoft/lagscope
+	cd lagscope/src
+	make && make install
+fi
 
 eth_log="./$log_folder/eth_report.log"
 
@@ -54,17 +65,21 @@ do
 	echo "======================================"
 	
 	ssh $server_username@$server_ip "pkill -f ntttcp"
-	ssh $server_username@$server_ip "ntttcp -P ${threads_n1[$i]} -t ${ntttcp_run_duration}" &
+	ssh $server_username@$server_ip "ntttcp -P ${threads_n1[$i]} -t ${test_run_duration}" &
+
+	ssh $server_username@$server_ip "pkill -f lagscope"
+	ssh $server_username@$server_ip "lagscope -r" &
+
 	sleep 2
-	$tcping_location -t 20 -n ${tcping_run_duration} $server_ip 22 > "./$log_folder/tcping-ntttcp-p${threads_n1[$i]}X1.log" &
-	ntttcp -s${server_ip} -P ${threads_n1[$i]} -n 1 -t ${ntttcp_run_duration}  > "./$log_folder/ntttcp-p${threads_n1[$i]}X1.log"
+	lagscope -s$server_ip -t ${test_run_duration} -V > "./$log_folder/lagscope-ntttcp-p${threads_n1[$i]}X1.log" &
+	ntttcp -s${server_ip} -P ${threads_n1[$i]} -n 1 -t ${test_run_duration}  > "./$log_folder/ntttcp-p${threads_n1[$i]}X1.log"
 
 	current_tx_bytes=$(get_tx_bytes)
 	current_tx_pkts=$(get_tx_pkts)
 	bytes_new=$(($current_tx_bytes-$previous_tx_bytes))
 	pkts_new=$(($current_tx_pkts-$previous_tx_pkts))
 	avg_pkt_size=$(echo "scale=2;$bytes_new/$pkts_new/1024" | bc)
-	throughput=$(echo "scale=2;$bytes_new/$ntttcp_run_duration*8/1024/1024/1024" | bc)
+	throughput=$(echo "scale=2;$bytes_new/$test_run_duration*8/1024/1024/1024" | bc)
 	previous_tx_bytes=$current_tx_bytes
 	previous_tx_pkts=$current_tx_pkts
 
@@ -85,17 +100,21 @@ do
 	echo "======================================"
 
 	ssh $server_username@$server_ip "pkill -f ntttcp"
-	ssh $server_username@$server_ip "ntttcp -P 64 -t ${ntttcp_run_duration}" &
+	ssh $server_username@$server_ip "ntttcp -P 64 -t ${test_run_duration}" &
+
+	ssh $server_username@$server_ip "pkill -f lagscope"
+	ssh $server_username@$server_ip "lagscope -r" &
+
 	sleep 2
-	$tcping_location -t 20 -n ${tcping_run_duration} $server_ip 22 > "./$log_folder/tcping-ntttcp-p64X${threads_64_nx[$i]}.log" &
-	ntttcp -s${server_ip} -P 64 -n ${threads_64_nx[$i]} -t ${ntttcp_run_duration}  > "./$log_folder/ntttcp-p64X${threads_64_nx[$i]}.log"
+	lagscope -s$server_ip -t ${test_run_duration} -V > "./$log_folder/lagscope-ntttcp-p64X${threads_64_nx[$i]}.log" &
+	ntttcp -s${server_ip} -P 64 -n ${threads_64_nx[$i]} -t ${test_run_duration}  > "./$log_folder/ntttcp-p64X${threads_64_nx[$i]}.log"
 	
 	current_tx_bytes=$(get_tx_bytes)
 	current_tx_pkts=$(get_tx_pkts)
 	bytes_new=$(($current_tx_bytes-$previous_tx_bytes))
 	pkts_new=$(($current_tx_pkts-$previous_tx_pkts))
 	avg_pkt_size=$(echo "scale=2;$bytes_new/$pkts_new/1024" | bc)
-	throughput=$(echo "scale=2;$bytes_new/$ntttcp_run_duration*8/1024/1024/1024" | bc)
+	throughput=$(echo "scale=2;$bytes_new/$test_run_duration*8/1024/1024/1024" | bc)
 	previous_tx_bytes=$current_tx_bytes
 	previous_tx_pkts=$current_tx_pkts
 
@@ -110,5 +129,7 @@ do
 done
 	 
 ssh $server_username@$server_ip "pkill -f ntttcp"
+ssh $server_username@$server_ip "pkill -f lagscope"
 
 echo "all done."
+
