@@ -31,12 +31,26 @@ eth_log="./$log_folder/eth_report.log"
 
 function get_tx_bytes(){
 	# RX bytes:66132495566 (66.1 GB)  TX bytes:3067606320236 (3.0 TB)
-	ifconfig $eth_name | grep "TX bytes"   | awk -F':' '{print $3}' | awk -F' ' ' {print $1}'
+	Tx_bytes=`ifconfig $eth_name | grep "TX bytes"   | awk -F':' '{print $3}' | awk -F' ' ' {print $1}'`
+	
+	if [ "x$Tx_bytes" == "x" ]
+	then
+		#TX packets 223558709  bytes 15463202847 (14.4 GiB)
+		Tx_bytes=`ifconfig $eth_name| grep "TX packets"| awk '{print $5}'`
+	fi
+	echo $Tx_bytes 
 }
 
 function get_tx_pkts(){
 	# TX packets:543924452 errors:0 dropped:0 overruns:0 carrier:0
-	ifconfig $eth_name | grep "TX packets" | awk -F':' '{print $2}' | awk -F' ' ' {print $1}'
+	Tx_pkts=`ifconfig $eth_name | grep "TX packets" | awk -F':' '{print $2}' | awk -F' ' ' {print $1}'`
+
+	if [ "x$Tx_pkts" == "x" ]
+	then
+		#TX packets 223558709  bytes 15463202847 (14.4 GiB)
+		Tx_pkts=`ifconfig $eth_name| grep "TX packets"| awk '{print $3}'`
+	fi
+	echo $Tx_pkts 
 }
 
 mkdir $log_folder
