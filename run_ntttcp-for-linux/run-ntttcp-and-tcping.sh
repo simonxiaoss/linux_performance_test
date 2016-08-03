@@ -4,8 +4,8 @@ log_folder=$1
 server_ip=$2
 server_username=$3
 test_run_duration=60
-threads_n1=(1 2 4 8 16 32 64)
-threads_64_nx=(2 4 8 16)
+test_threads_collection=(1 2 4 8 16 32 64 128 256 512 1024)
+max_server_threads=64
 eth_name=eth0
 
 if [[ $log_folder == ""  ]]
@@ -60,21 +60,31 @@ ssh $server_username@$server_ip "pkill -f ntttcp"
 previous_tx_bytes=$(get_tx_bytes)
 previous_tx_pkts=$(get_tx_pkts)
 i=0
-while [ "x${threads_n1[$i]}" != "x" ]
+while [ "x${test_threads_collection[$i]}" != "x" ]
 do
+	current_test_threads=${test_threads_collection[$i]}
+	if [ $current_test_threads -lt $max_server_threads ]
+	then
+		num_threads_P=$current_test_threads
+		num_threads_n=1
+	else
+		num_threads_P=$max_server_threads
+		num_threads_n=$(($current_test_threads / $num_threads_P))
+	fi
+	
 	echo "======================================"
-	echo "Running Test: ${threads_n1[$i]} X 1" 
+	echo "Running Test: $num_threads_P X $num_threads_n" 
 	echo "======================================"
 	
 	ssh $server_username@$server_ip "pkill -f ntttcp"
-	ssh $server_username@$server_ip "ntttcp -P ${threads_n1[$i]} -t ${test_run_duration}" &
+	ssh $server_username@$server_ip "ntttcp -P $num_threads_P -t ${test_run_duration}" &
 
 	ssh $server_username@$server_ip "pkill -f lagscope"
 	ssh $server_username@$server_ip "lagscope -r" &
-
+	
 	sleep 2
-	lagscope -s$server_ip -t ${test_run_duration} -V > "./$log_folder/lagscope-ntttcp-p${threads_n1[$i]}X1.log" &
-	ntttcp -s${server_ip} -P ${threads_n1[$i]} -n 1 -t ${test_run_duration}  > "./$log_folder/ntttcp-p${threads_n1[$i]}X1.log"
+	lagscope -s$server_ip -t ${test_run_duration} -V > "./$log_folder/lagscope-ntttcp-p${num_threads_P}X${num_threads_n}.log" &
+	ntttcp -s${server_ip} -P $num_threads_P -n $num_threads_n -t ${test_run_duration}  > "./$log_folder/ntttcp-p${num_threads_P}X${num_threads_n}.log"
 
 	current_tx_bytes=$(get_tx_bytes)
 	current_tx_pkts=$(get_tx_pkts)
@@ -87,48 +97,13 @@ do
 
 	echo "throughput (gbps): $throughput"
 	echo "average packet size: $avg_pkt_size"
-	printf "%4s  %8.2f  %8.2f\n" ${threads_n1[$i]} $throughput $avg_pkt_size >> $eth_log
+	printf "%4s  %8.2f  %8.2f\n" ${current_test_threads} $throughput $avg_pkt_size >> $eth_log
 
 	echo "current test finished. wait for next one... "
 	i=$(($i + 1))
 	sleep 5
 done
 	
-i=0
-while [ "x${threads_64_nx[$i]}" != "x" ]
-do
-	echo "======================================"
-	echo "Running Test: 64 X ${threads_64_nx[$i]} "
-	echo "======================================"
-
-	ssh $server_username@$server_ip "pkill -f ntttcp"
-	ssh $server_username@$server_ip "ntttcp -P 64 -t ${test_run_duration}" &
-
-	ssh $server_username@$server_ip "pkill -f lagscope"
-	ssh $server_username@$server_ip "lagscope -r" &
-
-	sleep 2
-	lagscope -s$server_ip -t ${test_run_duration} -V > "./$log_folder/lagscope-ntttcp-p64X${threads_64_nx[$i]}.log" &
-	ntttcp -s${server_ip} -P 64 -n ${threads_64_nx[$i]} -t ${test_run_duration}  > "./$log_folder/ntttcp-p64X${threads_64_nx[$i]}.log"
-	
-	current_tx_bytes=$(get_tx_bytes)
-	current_tx_pkts=$(get_tx_pkts)
-	bytes_new=$(($current_tx_bytes-$previous_tx_bytes))
-	pkts_new=$(($current_tx_pkts-$previous_tx_pkts))
-	avg_pkt_size=$(echo "scale=2;$bytes_new/$pkts_new/1024" | bc)
-	throughput=$(echo "scale=2;$bytes_new/$test_run_duration*8/1024/1024/1024" | bc)
-	previous_tx_bytes=$current_tx_bytes
-	previous_tx_pkts=$current_tx_pkts
-
-	echo "throughput (gbps): $throughput"
-	echo "average packet size: $avg_pkt_size"
-	printf "%4s  %8.2f  %8.2f\n" $((${threads_64_nx[$i]}*64)) $throughput $avg_pkt_size >> $eth_log
-
-	echo "current test finished. wait for next one... "
-
-	i=$(($i + 1))
-	sleep 5
-done
 	 
 ssh $server_username@$server_ip "pkill -f ntttcp"
 ssh $server_username@$server_ip "pkill -f lagscope"
