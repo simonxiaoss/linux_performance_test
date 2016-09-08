@@ -1,8 +1,6 @@
 #!/bin/bash
 
 log_folder=$1
-ntttcp_log_prefix="ntttcp-p"
-lagscope_log_prefix="lagscope-ntttcp-p"
 test_qdepth_collection=(1 2 4 8 16 32 64 128 256 512 1024)
 result_parsed=""
 result_file="${log_folder}/report.log"
