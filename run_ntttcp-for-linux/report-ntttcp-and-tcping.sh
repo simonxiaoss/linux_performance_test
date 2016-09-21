@@ -54,6 +54,17 @@ do
 
 	throughput=$(get_throughput $ntttcp_log_file)
 	latency=$(get_latency $lagscope_log_file)
+
+	if  [ "x$throughput" = "x" ]
+	then
+		throughput=0
+	fi
+	
+	if [ "x$latency" = "x" ]
+	then
+		latency=0
+	fi
+	
 	printf "%4s  %8.2f  %8.2f\n" ${current_test_threads} ${throughput} ${latency} >> $result_file
 
 	i=$(($i + 1))
