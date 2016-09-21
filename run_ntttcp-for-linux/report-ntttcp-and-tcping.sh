@@ -55,12 +55,12 @@ do
 	throughput=$(get_throughput $ntttcp_log_file)
 	latency=$(get_latency $lagscope_log_file)
 
-	if  [ "x$throughput" = "x" ]
+	if  [ "x$throughput" == "x" ]
 	then
 		throughput=0
 	fi
 	
-	if [ "x$latency" = "x" ]
+	if [ "x$latency" == "x" ]
 	then
 		latency=0
 	fi
@@ -71,3 +71,4 @@ do
 done
 
 cat $result_file
+
