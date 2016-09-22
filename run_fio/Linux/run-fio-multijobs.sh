@@ -14,6 +14,7 @@
 ################################
 
 io_size_collection=(4 8 128 1024)
+file_size_collection=(16 16 160 160)
 q_depth_collection=(1 2 4 8 16 32 64 128 256 512 1024)
 io_mode_collection=(read randread write randwrite)
 
@@ -26,6 +27,7 @@ iosize_index=0
 while [ "x${io_size_collection[$iosize_index]}" != "x" ]
 do
 	current_io_size=${io_size_collection[$iosize_index]}
+	current_file_size=${file_size_collection[$iosize_index]}
 	echo "Running IO size = ${current_io_size} K "
 	log_folder="/root/fio/logs/${current_io_size}K"
 	mkdir -p $log_folder
@@ -58,8 +60,8 @@ do
 			echo "        Running IO test = ${current_io_mode}"
 			log_file="${log_folder}/${current_io_size}K-${current_q_depth}-${current_io_mode}.fio.log"
 			echo "FIO TEST COMMAND:" > ${log_file}
-			echo "fio --name=${current_io_mode} --bs=${current_io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --size=16G --direct=1 --runtime=120 --numjobs=${num_jobs} --rw=${current_io_mode} --group_reporting" >> ${log_file}
-			      fio --name=${current_io_mode} --bs=${current_io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --size=16G --direct=1 --runtime=120 --numjobs=${num_jobs} --rw=${current_io_mode} --group_reporting  >> ${log_file}
+			echo "fio --name=${current_io_mode} --bs=${current_io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --size=${current_file_size}G --direct=1 --runtime=120 --numjobs=${num_jobs} --rw=${current_io_mode} --group_reporting" >> ${log_file}
+			      fio --name=${current_io_mode} --bs=${current_io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --size=${current_file_size}G --direct=1 --runtime=120 --numjobs=${num_jobs} --rw=${current_io_mode} --group_reporting  >> ${log_file}
 			sleep 1
 			io_mode_index=$(($io_mode_index + 1))
 		done
