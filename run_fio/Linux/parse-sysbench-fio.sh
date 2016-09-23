@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#
-# usage: ./parser.sh 4K
-#
-
 log_folder=$1
 io_size_collection=(4 8 16 32 64 128 256 512 1024)
 io_mode_collection=(seqwr seqrewr seqrd rndrd rndwr rndrw)
@@ -21,7 +17,7 @@ function get_bw(){
 	while read line
 	do
 		# Read 0b  Written 22.7Gb  Total transferred 22.7Gb  (77.482Mb/sec)
-		if [[ "$line" == *"bw="* ]]
+		if [[ "$line" == *"Total transferred"* ]]
 		then
 			echo "$line" | awk -F'(' '{print $2}' | tr -d ")"
 		fi
