@@ -16,10 +16,10 @@ fi
 function get_bw(){
 	while read line
 	do
-		# Read 0b  Written 22.7Gb  Total transferred 22.7Gb  (77.482Mb/sec)
-		if [[ "$line" == *"Total transferred"* ]]
+		#60111.56 Requests/sec executed
+		if [[ "$line" == *"Requests/sec executed"* ]]
 		then
-			echo "$line" | awk -F'(' '{print $2}' | tr -d ")"
+			echo "$line" | awk -F' ' '{print $1}'
 		fi
 	done < $1
 }
