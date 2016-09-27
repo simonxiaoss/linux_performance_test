@@ -8,6 +8,7 @@ mkdir -p $log_folder
 cd /mnt
 
 echo "Prepare test files..."
+sysbench --test=fileio cleanup
 sysbench --test=fileio --num-threads=8 --report-interval=5 --file-num=8 --file-total-size=16G prepare
 echo "Test files created."
 
@@ -41,6 +42,6 @@ do
 	iosize_index=$(($iosize_index + 1))
 done
 
-#echo "Prepare test files..."
-#sysbench --test=fileio cleanup
-#echo "Test files created."
+echo "Prepare test files..."
+sysbench --test=fileio cleanup
+echo "Test files created."
