@@ -5,7 +5,6 @@ server="192.168.40.111"
 log_folder=logs
 lua_oltp_path="/root/benchmark/sysbench/sysbench/tests/db/oltp.lua"
 
-
 ssh root@${server} mkdir -p /root/benchmark/mariadb/$log_folder
 #run Mariadb on server side
 ssh root@${server} "/usr/local/mysql/bin/mysqld_safe --user=mysql --datadir=/mnt/mysql/data &" &
@@ -13,6 +12,10 @@ echo "Wait Mariadb startup for 30 seconds ..."
 sleep 30
 mysql_pid=$(ssh root@${server} pidof mysqld)
 echo "mysqld pid is $mysql_pid"
+
+echo "Prepare database for the test..."
+sysbench --test=${lua_oltp_path} --mysql-host=${server} --mysql-user=lisa --mysql-password=lisapassword --mysql-db=test --oltp-table-size=100000000 prepare    
+echo "Start the test..."
 
 t=0
 while [ "x${test_threads_collection[$t]}" != "x" ]

@@ -55,24 +55,36 @@ echo "#test_connections throughput_gbps average_tcp_latency" > $result_file
 i=0
 while [ "x${test_threads_collection[$i]}" != "x" ]
 do
-        current_test_threads=${test_threads_collection[$i]}
-        if [ $current_test_threads -lt $max_server_threads ]
-        then
-                num_threads_P=$current_test_threads
-                num_threads_n=1
-        else
-                num_threads_P=$max_server_threads
-                num_threads_n=$(($current_test_threads / $num_threads_P))
-        fi
+	current_test_threads=${test_threads_collection[$i]}
+	if [ $current_test_threads -lt $max_server_threads ]
+	then
+		num_threads_P=$current_test_threads
+		num_threads_n=1
+	else
+		num_threads_P=$max_server_threads
+		num_threads_n=$(($current_test_threads / $num_threads_P))
+	fi
+	
+	ntttcp_log_file="$log_folder/${ntttcp_log_prefix}${num_threads_P}X${num_threads_n}.log"
+	lagscope_log_file="$log_folder/${lagscope_log_prefix}${num_threads_P}X${num_threads_n}.log"
+	echo "${num_threads_P}X${num_threads_n}"
 
-        ntttcp_log_file="$log_folder/${ntttcp_log_prefix}${num_threads_P}X${num_threads_n}.log"
-        lagscope_log_file="$log_folder/${lagscope_log_prefix}${num_threads_P}X${num_threads_n}.log"
-        echo "${num_threads_P}X${num_threads_n}"
-        throughput=$(get_throughput $ntttcp_log_file)
-        latency=$(get_latency $lagscope_log_file)
-        printf "%4s  %8.2f  %8.2f\n" ${current_test_threads} ${throughput} ${latency} >> $result_file
+	throughput=$(get_throughput $ntttcp_log_file)
+	latency=$(get_latency $lagscope_log_file)
 
-        i=$(($i + 1))
+	if  [ "x$throughput" == "x" ]
+	then
+		throughput=0
+	fi
+	
+	if [ "x$latency" == "x" ]
+	then
+		latency=0
+	fi
+	
+	printf "%4s  %8.2f  %8.2f\n" ${current_test_threads} ${throughput} ${latency} >> $result_file
+
+	i=$(($i + 1))
 done
 
 cat $result_file
