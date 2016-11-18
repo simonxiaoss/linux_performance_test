@@ -41,6 +41,7 @@ if [ "$(which lagscope)" == "" ]; then
 fi
 
 eth_log="./$log_folder/eth_report.log"
+apt -y install bc sysstat dstat htop nload
 
 function get_tx_bytes(){
 	# RX bytes:66132495566 (66.1 GB)  TX bytes:3067606320236 (3.0 TB)
@@ -66,11 +67,14 @@ function get_tx_pkts(){
 	echo $Tx_pkts 
 }
 
+ulimit -n 20480
 mkdir $log_folder
+ssh $server_username@$server_ip "ulimit -n 20480"
+ssh $server_username@$server_ip "mkdir $log_folder"
+
 rm -rf $eth_log 
 echo "#test_connections    throughput_gbps    average_packet_size" > $eth_log 
 
-ssh $server_username@$server_ip "pkill -f ntttcp"
 previous_tx_bytes=$(get_tx_bytes)
 previous_tx_pkts=$(get_tx_pkts)
 i=0
@@ -91,14 +95,18 @@ do
 	echo "======================================"
 	
 	ssh $server_username@$server_ip "pkill -f ntttcp"
-	ssh $server_username@$server_ip "ntttcp -P $num_threads_P -t ${test_run_duration}" &
+	ssh $server_username@$server_ip "ntttcp -P $num_threads_P -t ${test_run_duration} > ./$log_folder/ntttcp-receiver-p${num_threads_P}X${num_threads_n}.log" &
 
 	ssh $server_username@$server_ip "pkill -f lagscope"
 	ssh $server_username@$server_ip "lagscope -r" &
 	
+	ssh $server_username@$server_ip "pkill -f dstat"
+	ssh $server_username@$server_ip "dstat -dam > ./$log_folder/dstat-receiver-p${num_threads_P}X${num_threads_n}.log" &
+	
 	sleep 2
+	dstat -dam > "./$log_folder/dstat-sender-p${num_threads_P}X${num_threads_n}.log" &
 	lagscope -s$server_ip -t ${test_run_duration} -V > "./$log_folder/lagscope-ntttcp-p${num_threads_P}X${num_threads_n}.log" &
-	ntttcp -s${server_ip} -P $num_threads_P -n $num_threads_n -t ${test_run_duration}  > "./$log_folder/ntttcp-p${num_threads_P}X${num_threads_n}.log"
+	ntttcp -s${server_ip} -P $num_threads_P -n $num_threads_n -t ${test_run_duration}  > "./$log_folder/ntttcp-sender-p${num_threads_P}X${num_threads_n}.log"
 
 	current_tx_bytes=$(get_tx_bytes)
 	current_tx_pkts=$(get_tx_pkts)
@@ -117,8 +125,9 @@ do
 	i=$(($i + 1))
 	sleep 5
 done
-	
-	 
+
+pkill -f dstat
+ssh $server_username@$server_ip "pkill -f dstat"
 ssh $server_username@$server_ip "pkill -f ntttcp"
 ssh $server_username@$server_ip "pkill -f lagscope"
 

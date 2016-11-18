@@ -29,7 +29,7 @@ function get_latency(){
 	do
 		if [[ "$line" == *"Average"* ]]
 		then
-			echo "$line" | awk -F'=' '{print $4}' | awk -F'ms' '{print $1}'
+			echo "$line" | awk -F'=' '{print $4}' | awk -F'us' '{print $1}'
 		fi
 	done < $1
 }
