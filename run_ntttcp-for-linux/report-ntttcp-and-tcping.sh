@@ -1,7 +1,7 @@
 #!/bin/bash
 
 log_folder=$1
-ntttcp_log_prefix="ntttcp-p"
+ntttcp_log_prefix="ntttcp-sender-p"
 lagscope_log_prefix="lagscope-ntttcp-p"
 test_threads_collection=(1 2 4 8 16 32 64 128 256 512 1024)
 max_server_threads=64
