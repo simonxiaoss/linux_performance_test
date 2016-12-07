@@ -10,12 +10,12 @@ eth_name=eth0
 
 if [[ $log_folder == ""  ]]
 then
-	log_folder=logs
+	log_folder="nettestlogs-$(date  +'%Y%m%d-%H%M')"
 fi
 
 if [[ $server_ip == ""  ]]
 then
-	server_ip=192.168.4.169
+	server_ip=10.10.0.7
 fi
 
 
