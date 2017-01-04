@@ -42,6 +42,7 @@ fi
 
 eth_log="./$log_folder/eth_report.log"
 apt -y install bc sysstat dstat htop nload
+ssh $server_username@$server_ip "apt -y install bc sysstat dstat htop nload"
 
 function get_tx_bytes(){
 	# RX bytes:66132495566 (66.1 GB)  TX bytes:3067606320236 (3.0 TB)
@@ -103,8 +104,12 @@ do
 	ssh $server_username@$server_ip "pkill -f dstat"
 	ssh $server_username@$server_ip "dstat -dam > ./$log_folder/dstat-receiver-p${num_threads_P}X${num_threads_n}.log" &
 	
+	ssh $server_username@$server_ip "pkill -f mpstat"
+	ssh $server_username@$server_ip "mpstat -P ALL 1 ${test_run_duration} > ./$log_folder/mpstat-receiver-p${num_threads_P}X${num_threads_n}.log" &
+	
 	sleep 2
 	dstat -dam > "./$log_folder/dstat-sender-p${num_threads_P}X${num_threads_n}.log" &
+	mpstat -P ALL 1 ${test_run_duration} > "./$log_folder/mpstat-sender-p${num_threads_P}X${num_threads_n}.log" &
 	lagscope -s$server_ip -t ${test_run_duration} -V > "./$log_folder/lagscope-ntttcp-p${num_threads_P}X${num_threads_n}.log" &
 	ntttcp -s${server_ip} -P $num_threads_P -n $num_threads_n -t ${test_run_duration}  > "./$log_folder/ntttcp-sender-p${num_threads_P}X${num_threads_n}.log"
 
