@@ -24,6 +24,16 @@ function get_throughput(){
 	done < $1
 }
 
+function get_cyclesperbyte(){
+	while read line
+	do
+		if [[ "$line" == *"cycles/byte"* ]]
+		then
+			echo "$line" | awk -F'\t:' '{print $2}' 
+		fi
+	done < $1
+}
+
 function get_latency(){
 	while read line
 	do
@@ -34,7 +44,7 @@ function get_latency(){
 	done < $1
 }
 
-echo "#test_connections	throughput_gbps	average_tcp_latency" > $result_file
+echo "#test_connections	throughput_gbps	cycles/bytes	average_tcp_latency" > $result_file
 i=0
 while [ "x${test_threads_collection[$i]}" != "x" ]
 do
@@ -50,9 +60,9 @@ do
 	
 	ntttcp_log_file="$log_folder/${ntttcp_log_prefix}${num_threads_P}X${num_threads_n}.log"
 	lagscope_log_file="$log_folder/${lagscope_log_prefix}${num_threads_P}X${num_threads_n}.log"
-	echo "${num_threads_P}X${num_threads_n}"
 
 	throughput=$(get_throughput $ntttcp_log_file)
+	cyclesperbytes=$(get_cyclesperbyte $ntttcp_log_file)
 	latency=$(get_latency $lagscope_log_file)
 
 	if  [ "x$throughput" == "x" ]
@@ -60,12 +70,17 @@ do
 		throughput=0
 	fi
 	
+	if  [ "x$cyclesperbytes" == "x" ]
+	then
+		cyclesperbytes=0
+	fi
+	
 	if [ "x$latency" == "x" ]
 	then
 		latency=0
 	fi
 	
-	printf "%4s  %8.2f  %8.2f\n" ${current_test_threads} ${throughput} ${latency} >> $result_file
+	printf "%4s  %8.2f %8.2f %8.2f\n" ${current_test_threads} ${throughput} ${cyclesperbytes} ${latency} >> $result_file
 
 	i=$(($i + 1))
 done

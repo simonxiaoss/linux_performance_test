@@ -108,6 +108,7 @@ do
 	ssh $server_username@$server_ip "mpstat -P ALL 1 ${test_run_duration} > ./$log_folder/mpstat-receiver-p${num_threads_P}X${num_threads_n}.log" &
 	
 	sleep 2
+	sar -n DEV 1 ${test_run_duration} > "./$log_folder/sar-sender-p${num_threads_P}X${num_threads_n}.log" &
 	dstat -dam > "./$log_folder/dstat-sender-p${num_threads_P}X${num_threads_n}.log" &
 	mpstat -P ALL 1 ${test_run_duration} > "./$log_folder/mpstat-sender-p${num_threads_P}X${num_threads_n}.log" &
 	lagscope -s$server_ip -t ${test_run_duration} -V > "./$log_folder/lagscope-ntttcp-p${num_threads_P}X${num_threads_n}.log" &
