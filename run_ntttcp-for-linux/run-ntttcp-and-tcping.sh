@@ -93,7 +93,7 @@ do
 	echo "======================================"
 	
 	ssh $server_username@$server_ip "pkill -f ntttcp"
-	ssh $server_username@$server_ip "ulimit -n 102400  && ntttcp -r -P $num_threads_P -t ${test_run_duration}" &
+	ssh $server_username@$server_ip "ulimit -n 102400  && ntttcp -r -e -P $num_threads_P -t ${test_run_duration}" &
 	ssh $server_username@$server_ip "pkill -f lagscope"
 	ssh $server_username@$server_ip "lagscope -r" &
 	
