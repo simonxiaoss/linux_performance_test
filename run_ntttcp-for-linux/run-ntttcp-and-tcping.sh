@@ -4,7 +4,7 @@ log_folder=$1
 server_ip=$2
 server_username=$3
 test_run_duration=$4
-test_threads_collection=(1024 2048 3072 6144 10240)
+test_threads_collection=(1 2 4 8 16 32 64 128 256 512 1024 2048 3072 6144 10240)
 max_server_threads=64
 eth_name=eth0
 

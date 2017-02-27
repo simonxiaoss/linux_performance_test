@@ -3,7 +3,7 @@
 log_folder=$1
 ntttcp_log_prefix="ntttcp-p"
 lagscope_log_prefix="lagscope-ntttcp-p"
-test_threads_collection=(1024 2048 3072 6144 10240)
+test_threads_collection=(1 2 4 8 16 32 64 128 256 512 1024 2048 3072 6144 10240)
 max_server_threads=64
 result_parsed=""
 result_file="${log_folder}/report.log"
