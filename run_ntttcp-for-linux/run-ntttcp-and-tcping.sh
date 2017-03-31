@@ -4,7 +4,7 @@ log_folder=$1
 server_ip=$2
 server_username=$3
 test_run_duration=60
-test_threads_collection=(1 2 4 8 16 32 64 128 256 512 1024)
+test_threads_collection=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096 10240)
 max_server_threads=64
 eth_name=eth0
 
@@ -68,7 +68,7 @@ function get_tx_pkts(){
 	echo $Tx_pkts 
 }
 
-ulimit -n 20480
+ulimit -n 204800
 mkdir $log_folder
 ssh $server_username@$server_ip "ulimit -n 20480"
 ssh $server_username@$server_ip "mkdir $log_folder"
