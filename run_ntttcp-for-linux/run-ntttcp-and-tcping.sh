@@ -4,9 +4,9 @@ log_folder=$1
 server_ip=$2
 server_username=$3
 test_run_duration=60
-test_threads_collection=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096 10240)
+test_threads_collection=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096 6144 8192 10240)
 max_server_threads=64
-eth_name=eth0
+eth_name=bond0
 
 if [[ $log_folder == ""  ]]
 then
@@ -15,7 +15,7 @@ fi
 
 if [[ $server_ip == ""  ]]
 then
-	server_ip=10.10.0.7
+	server_ip=192.168.4.113
 fi
 
 
@@ -96,7 +96,7 @@ do
 	echo "======================================"
 	
 	ssh $server_username@$server_ip "pkill -f ntttcp"
-	ssh $server_username@$server_ip "ntttcp -P $num_threads_P -t ${test_run_duration} > ./$log_folder/ntttcp-receiver-p${num_threads_P}X${num_threads_n}.log" &
+	ssh $server_username@$server_ip "ntttcp -P $num_threads_P -t ${test_run_duration} -e > ./$log_folder/ntttcp-receiver-p${num_threads_P}X${num_threads_n}.log" &
 
 	ssh $server_username@$server_ip "pkill -f lagscope"
 	ssh $server_username@$server_ip "lagscope -r" &
