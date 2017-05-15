@@ -68,7 +68,6 @@ function get_tx_pkts(){
 	echo $Tx_pkts 
 }
 
-ulimit -n 204800
 mkdir $log_folder
 ssh $server_username@$server_ip "ulimit -n 20480"
 ssh $server_username@$server_ip "mkdir $log_folder"
@@ -96,7 +95,7 @@ do
 	echo "======================================"
 	
 	ssh $server_username@$server_ip "pkill -f ntttcp"
-	ssh $server_username@$server_ip "ntttcp -P $num_threads_P -t ${test_run_duration} -e > ./$log_folder/ntttcp-receiver-p${num_threads_P}X${num_threads_n}.log" &
+	ssh $server_username@$server_ip "ulimit -n 204800 && ntttcp -P $num_threads_P -t ${test_run_duration} -e > ./$log_folder/ntttcp-receiver-p${num_threads_P}X${num_threads_n}.log" &
 
 	ssh $server_username@$server_ip "pkill -f lagscope"
 	ssh $server_username@$server_ip "lagscope -r" &
