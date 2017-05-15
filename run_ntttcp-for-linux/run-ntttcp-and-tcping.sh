@@ -93,7 +93,9 @@ do
 	echo "======================================"
 	echo "Running Test: $num_threads_P X $num_threads_n" 
 	echo "======================================"
-	
+
+	ssh $server_username@$server_ip "for i in {1..$test_run_duration}; do ss -ta | grep ESTA | grep -v ssh | wc -l >> ./$log_folder/tcp-connections-p${num_threads_P}X${num_threads_n}.log; sleep 1; done" &
+
 	ssh $server_username@$server_ip "pkill -f ntttcp"
 	ssh $server_username@$server_ip "ulimit -n 204800 && ntttcp -P $num_threads_P -t ${test_run_duration} -e > ./$log_folder/ntttcp-receiver-p${num_threads_P}X${num_threads_n}.log" &
 
