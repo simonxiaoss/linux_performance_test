@@ -60,8 +60,8 @@ do
 			echo "        Running IO test = ${current_io_mode}"
 			log_file="${log_folder}/${current_io_size}K-${current_q_depth}-${current_io_mode}.fio.log"
 			echo "FIO TEST COMMAND:" > ${log_file}
-			echo "fio --name=${current_io_mode} --bs=${current_io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --size=${current_file_size}G --direct=1 --runtime=120 --numjobs=${num_jobs} --rw=${current_io_mode} --group_reporting" >> ${log_file}
-			      fio --name=${current_io_mode} --bs=${current_io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --size=${current_file_size}G --direct=1 --runtime=120 --numjobs=${num_jobs} --rw=${current_io_mode} --group_reporting  >> ${log_file}
+			echo "fio --name=${current_io_mode} --bs=${current_io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --filename=/dev/sdb --direct=1 --runtime=120 --numjobs=${num_jobs} --rw=${current_io_mode} --group_reporting" >> ${log_file}
+			      fio --name=${current_io_mode} --bs=${current_io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --filename=/dev/sdb --direct=1 --runtime=120 --numjobs=${num_jobs} --rw=${current_io_mode} --group_reporting  >> ${log_file}
 			sleep 1
 			io_mode_index=$(($io_mode_index + 1))
 		done

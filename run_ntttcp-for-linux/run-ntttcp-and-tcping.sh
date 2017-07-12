@@ -15,7 +15,7 @@ fi
 
 if [[ $server_ip == ""  ]]
 then
-	server_ip=192.168.4.113
+	server_ip=10.0.0.5
 fi
 
 
@@ -97,7 +97,7 @@ do
 	ssh $server_username@$server_ip "for i in {1..$test_run_duration}; do ss -ta | grep ESTA | grep -v ssh | wc -l >> ./$log_folder/tcp-connections-p${num_threads_P}X${num_threads_n}.log; sleep 1; done" &
 
 	ssh $server_username@$server_ip "pkill -f ntttcp"
-	ssh $server_username@$server_ip "ulimit -n 204800 && ntttcp -P $num_threads_P -t ${test_run_duration} -e > ./$log_folder/ntttcp-receiver-p${num_threads_P}X${num_threads_n}.log" &
+	ssh $server_username@$server_ip "ulimit -n 20480 && ntttcp -P $num_threads_P -t ${test_run_duration} -e > ./$log_folder/ntttcp-receiver-p${num_threads_P}X${num_threads_n}.log" &
 
 	ssh $server_username@$server_ip "pkill -f lagscope"
 	ssh $server_username@$server_ip "lagscope -r" &
@@ -113,7 +113,7 @@ do
 	dstat -dam > "./$log_folder/dstat-sender-p${num_threads_P}X${num_threads_n}.log" &
 	mpstat -P ALL 1 ${test_run_duration} > "./$log_folder/mpstat-sender-p${num_threads_P}X${num_threads_n}.log" &
 	lagscope -s$server_ip -t ${test_run_duration} -V > "./$log_folder/lagscope-ntttcp-p${num_threads_P}X${num_threads_n}.log" &
-	ntttcp -s${server_ip} -P $num_threads_P -n $num_threads_n -t ${test_run_duration}  > "./$log_folder/ntttcp-sender-p${num_threads_P}X${num_threads_n}.log"
+	ulimit -n 20480 && ntttcp -s${server_ip} -P $num_threads_P -n $num_threads_n -t ${test_run_duration}  > "./$log_folder/ntttcp-sender-p${num_threads_P}X${num_threads_n}.log"
 
 	current_tx_bytes=$(get_tx_bytes)
 	current_tx_pkts=$(get_tx_pkts)
@@ -139,4 +139,5 @@ ssh $server_username@$server_ip "pkill -f ntttcp"
 ssh $server_username@$server_ip "pkill -f lagscope"
 
 echo "all done."
+
 
