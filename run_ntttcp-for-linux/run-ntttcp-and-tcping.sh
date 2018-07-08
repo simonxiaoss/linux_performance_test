@@ -53,6 +53,11 @@ function get_tx_bytes(){
 		#TX packets 223558709  bytes 15463202847 (14.4 GiB)
 		Tx_bytes=`ifconfig $eth_name| grep "TX packets"| awk '{print $5}'`
 	fi
+	if [ "x$Tx_bytes" == "x" ]
+	then
+		#if ifconfig cmd not present
+		Tx_bytes=`cat /sys/class/net/$eth_name/statistics/tx_packets`
+	fi
 	echo $Tx_bytes 
 }
 
@@ -64,6 +69,11 @@ function get_tx_pkts(){
 	then
 		#TX packets 223558709  bytes 15463202847 (14.4 GiB)
 		Tx_pkts=`ifconfig $eth_name| grep "TX packets"| awk '{print $3}'`
+	fi
+	if [ "x$Tx_pkts" == "x" ]
+	then
+		#if ifconfig cmd not present
+		Tx_pkts=`cat /sys/class/net/$eth_name/statistics/tx_packets`
 	fi
 	echo $Tx_pkts 
 }
