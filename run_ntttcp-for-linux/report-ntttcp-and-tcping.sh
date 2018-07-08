@@ -85,5 +85,5 @@ do
 	i=$(($i + 1))
 done
 
-cat $result_file
+cat $result_file | column -t
 
