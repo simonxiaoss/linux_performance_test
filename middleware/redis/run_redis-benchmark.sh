@@ -10,8 +10,8 @@ log_folder="/root/benchmark/redis/logs"
 ssh root@${server} mkdir -p $log_folder
 mkdir -p $log_folder
 
-pkill -f redis-benchmark
-ssh root@${server} pkill -f redis-server > /dev/nul
+pkill -x redis-benchmark
+ssh root@${server} pkill -x redis-server > /dev/null
 
 t=0
 while [ "x${test_pipeline_collection[$t]}" != "x" ]
@@ -39,16 +39,16 @@ do
         echo "-> done"
 		
         #cleanup redis-server
-        ssh root@${server} pkill -f sar
-        ssh root@${server} pkill -f iostat
-        ssh root@${server} pkill -f vmstat
-        ssh root@${server} pkill -f redis-server > /dev/nul
+        ssh root@${server} pkill -x sar
+        ssh root@${server} pkill -x iostat
+        ssh root@${server} pkill -x vmstat
+        ssh root@${server} pkill -x redis-server > /dev/null
 
         #cleanup redis-benchmark
-        pkill -f sar
-        pkill -f iostat
-        pkill -f vmstat
-        pkill -f redis-benchmark
+        pkill -x sar
+        pkill -x iostat
+        pkill -x vmstat
+        pkill -x redis-benchmark
 
         echo "sleep 60 seconds for next test"
         echo ""
